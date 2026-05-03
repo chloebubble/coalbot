@@ -9,14 +9,15 @@ Discord bot that deletes a user's message after it receives enough coal reaction
    - `Read Message History`
    - `Manage Messages`
    - `View Channels`
-3. Create local config:
+3. Enable the `Message Content Intent` for the bot in the Discord Developer Portal.
+4. Create local config:
 
 ```bash
 cp config.example.json config.json
 ```
 
-4. Edit `config.json`.
-5. Run:
+5. Edit `config.json`.
+6. Run:
 
 ```bash
 uv sync

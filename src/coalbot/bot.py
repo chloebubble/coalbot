@@ -15,6 +15,7 @@ class CoalBot(discord.Client):
         intents = discord.Intents.default()
         intents.reactions = True
         intents.guilds = True
+        intents.message_content = True
 
         super().__init__(intents=intents)
         self.config = config
@@ -67,6 +68,7 @@ class CoalBot(discord.Client):
 
         deleted_content = message.content
         deleted_author = message.author
+        deleted_attachment_urls = [attachment.url for attachment in message.attachments]
 
         try:
             await message.delete()
@@ -88,6 +90,7 @@ class CoalBot(discord.Client):
             channel_id=payload.channel_id,
             message_id=payload.message_id,
             content=deleted_content,
+            attachment_urls=deleted_attachment_urls,
             coal_count=coal_count,
         )
 
@@ -106,6 +109,7 @@ class CoalBot(discord.Client):
         channel_id: int,
         message_id: int,
         content: str,
+        attachment_urls: list[str],
         coal_count: int,
     ) -> None:
         if self.config.log_channel_id is None:
@@ -132,10 +136,16 @@ class CoalBot(discord.Client):
             description=_truncate(content) if content else "No text content.",
             color=discord.Color.dark_grey(),
         )
-        embed.add_field(name="Author", value=f"{author} (`{author.id}`)", inline=False)
+        embed.add_field(name="Author", value=f"<@{author.id}> (`{author.id}`)", inline=False)
         embed.add_field(name="Channel", value=f"<#{channel_id}>", inline=True)
         embed.add_field(name="Coal", value=str(coal_count), inline=True)
         embed.add_field(name="Message ID", value=str(message_id), inline=False)
+        if attachment_urls:
+            embed.add_field(
+                name="Attachments",
+                value=_truncate("\n".join(attachment_urls)),
+                inline=False,
+            )
 
         try:
             await log_channel.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
