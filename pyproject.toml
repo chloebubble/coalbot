@@ -1,0 +1,28 @@
+[project]
+name = "coalbot"
+version = "0.1.0"
+description = "Discord bot that deletes messages once they receive enough coal reactions."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "discord.py>=2.4,<3",
+]
+
+[project.scripts]
+coalbot = "coalbot.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

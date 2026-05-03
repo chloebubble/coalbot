@@ -1,0 +1,2 @@
+"""coalbot package."""
+
