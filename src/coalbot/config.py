@@ -16,6 +16,7 @@ class Config:
     coal_threshold: int
     ignored_channel_ids: frozenset[int]
     log_channel_id: int | None
+    request_message_content_intent: bool
 
 
 def load_config(path: str | Path = "config.json") -> Config:
@@ -43,6 +44,10 @@ def load_config(path: str | Path = "config.json") -> Config:
             "ignored_channel_ids",
         ),
         log_channel_id=_optional_id(raw_config.get("log_channel_id"), "log_channel_id"),
+        request_message_content_intent=_bool(
+            raw_config.get("request_message_content_intent", False),
+            "request_message_content_intent",
+        ),
     )
 
 
@@ -61,6 +66,12 @@ def _positive_int(value: Any, name: str) -> int:
         raise RuntimeError(f"{name} must be an integer")
     if value < 1:
         raise RuntimeError(f"{name} must be at least 1")
+    return value
+
+
+def _bool(value: Any, name: str) -> bool:
+    if not isinstance(value, bool):
+        raise RuntimeError(f"{name} must be a boolean")
     return value
 
 

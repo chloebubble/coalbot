@@ -9,15 +9,14 @@ Discord bot that deletes a user's message after it receives enough coal reaction
    - `Read Message History`
    - `Manage Messages`
    - `View Channels`
-3. Enable the `Message Content Intent` for the bot in the Discord Developer Portal.
-4. Create local config:
+3. Create local config:
 
 ```bash
 cp config.example.json config.json
 ```
 
-5. Edit `config.json`.
-6. Run:
+4. Edit `config.json`.
+5. Run:
 
 ```bash
 uv sync
@@ -32,12 +31,15 @@ uv run coalbot
   "coal_emoji": "123456789012345678",
   "coal_threshold": 3,
   "ignored_channel_ids": [],
-  "log_channel_id": null
+  "log_channel_id": null,
+  "request_message_content_intent": false
 }
 ```
 
 `coal_emoji` may be a custom emoji id, a custom emoji mention, or a unicode emoji.
 Set `log_channel_id` to a channel id to log deletions.
+Set `request_message_content_intent` to `true` only after enabling `Message Content Intent`
+in the Discord Developer Portal.
 
 Use another config path with:
 
