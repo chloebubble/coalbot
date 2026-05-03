@@ -65,6 +65,9 @@ class CoalBot(discord.Client):
         if coal_count < self.config.coal_threshold:
             return
 
+        deleted_content = message.content
+        deleted_author = message.author
+
         try:
             await message.delete()
         except discord.NotFound:
@@ -80,6 +83,13 @@ class CoalBot(discord.Client):
             coal_count,
             self.config.coal_threshold,
         )
+        await self._send_deletion_log(
+            author=deleted_author,
+            channel_id=payload.channel_id,
+            message_id=payload.message_id,
+            content=deleted_content,
+            coal_count=coal_count,
+        )
 
     def _is_coal_emoji(self, emoji: discord.PartialEmoji | discord.Emoji | str) -> bool:
         configured = self.config.coal_emoji
@@ -88,6 +98,55 @@ class CoalBot(discord.Client):
         if emoji.id is not None:
             return str(emoji.id) == configured
         return emoji.name == configured
+
+    async def _send_deletion_log(
+        self,
+        *,
+        author: discord.User | discord.Member,
+        channel_id: int,
+        message_id: int,
+        content: str,
+        coal_count: int,
+    ) -> None:
+        if self.config.log_channel_id is None:
+            return
+
+        log_channel_id = self.config.log_channel_id
+        log_channel = self.get_channel(log_channel_id)
+        if log_channel is None:
+            try:
+                log_channel = await self.fetch_channel(log_channel_id)
+            except discord.NotFound:
+                LOGGER.warning("Configured log channel %s was not found", log_channel_id)
+                return
+            except discord.Forbidden:
+                LOGGER.warning("Missing permission to fetch log channel %s", log_channel_id)
+                return
+
+        if not isinstance(log_channel, discord.TextChannel | discord.Thread | discord.VoiceChannel):
+            LOGGER.warning("Configured log channel %s is not messageable", log_channel_id)
+            return
+
+        embed = discord.Embed(
+            title="Coal deletion",
+            description=_truncate(content) if content else "No text content.",
+            color=discord.Color.dark_grey(),
+        )
+        embed.add_field(name="Author", value=f"{author} (`{author.id}`)", inline=False)
+        embed.add_field(name="Channel", value=f"<#{channel_id}>", inline=True)
+        embed.add_field(name="Coal", value=str(coal_count), inline=True)
+        embed.add_field(name="Message ID", value=str(message_id), inline=False)
+
+        try:
+            await log_channel.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+        except discord.Forbidden:
+            LOGGER.warning("Missing permission to send logs to channel %s", log_channel_id)
+
+
+def _truncate(value: str, limit: int = 1000) -> str:
+    if len(value) <= limit:
+        return value
+    return f"{value[: limit - 3]}..."
 
 
 def run(config_path: str | Path = "config.json") -> None:

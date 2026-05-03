@@ -30,11 +30,13 @@ uv run coalbot
   "discord_token": "bot-token",
   "coal_emoji": "123456789012345678",
   "coal_threshold": 3,
-  "ignored_channel_ids": []
+  "ignored_channel_ids": [],
+  "log_channel_id": null
 }
 ```
 
 `coal_emoji` may be a custom emoji id, a custom emoji mention, or a unicode emoji.
+Set `log_channel_id` to a channel id to log deletions.
 
 Use another config path with:
 

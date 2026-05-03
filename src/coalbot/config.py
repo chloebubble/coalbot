@@ -15,6 +15,7 @@ class Config:
     coal_emoji: str
     coal_threshold: int
     ignored_channel_ids: frozenset[int]
+    log_channel_id: int | None
 
 
 def load_config(path: str | Path = "config.json") -> Config:
@@ -41,6 +42,7 @@ def load_config(path: str | Path = "config.json") -> Config:
             raw_config.get("ignored_channel_ids", []),
             "ignored_channel_ids",
         ),
+        log_channel_id=_optional_id(raw_config.get("log_channel_id"), "log_channel_id"),
     )
 
 
@@ -81,6 +83,20 @@ def _id_set(value: Any, name: str) -> frozenset[int]:
             raise RuntimeError(f"{name} must contain only positive channel ids")
         ids.add(channel_id)
     return frozenset(ids)
+
+
+def _optional_id(value: Any, name: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int | str):
+        raise RuntimeError(f"{name} must be an integer, string, or null")
+    try:
+        item_id = int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be a valid id") from exc
+    if item_id < 1:
+        raise RuntimeError(f"{name} must be a positive id")
+    return item_id
 
 
 def _normalize_emoji(value: str) -> str:
