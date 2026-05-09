@@ -4,6 +4,8 @@ import logging
 from pathlib import Path
 
 import discord
+from rich.console import Console
+from rich.logging import RichHandler
 
 from coalbot.config import Config, load_config
 
@@ -169,10 +171,24 @@ def _log_description(content: str, content_available: bool) -> str:
     return "Message content logging disabled."
 
 
-def run(config_path: str | Path = "config.json") -> None:
+def _configure_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        format="%(name)s: %(message)s",
+        handlers=[
+            RichHandler(
+                console=Console(stderr=True),
+                rich_tracebacks=True,
+                show_path=False,
+                markup=False,
+            )
+        ],
+        force=True,
     )
+    logging.captureWarnings(True)
+
+
+def run(config_path: str | Path = "config.json") -> None:
+    _configure_logging()
     config = load_config(config_path)
-    CoalBot(config).run(config.discord_token)
+    CoalBot(config).run(config.discord_token, log_handler=None)
