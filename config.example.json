@@ -1,8 +1,6 @@
 {
-  "discord_token": "replace-me",
   "coal_emoji": "123456789012345678",
   "coal_threshold": 3,
   "ignored_channel_ids": [],
-  "log_channel_id": null,
-  "request_message_content_intent": false
+  "log_channel_id": null
 }

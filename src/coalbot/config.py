@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from dotenv import load_dotenv
 
 CUSTOM_EMOJI_RE = re.compile(r"^<a?:[^:]+:(?P<id>\d+)>$")
 
@@ -16,11 +19,12 @@ class Config:
     coal_threshold: int
     ignored_channel_ids: frozenset[int]
     log_channel_id: int | None
-    request_message_content_intent: bool
 
 
 def load_config(path: str | Path = "config.json") -> Config:
     config_path = Path(path)
+    load_dotenv(config_path.with_name(".env"))
+
     try:
         raw_config = json.loads(config_path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
@@ -31,7 +35,7 @@ def load_config(path: str | Path = "config.json") -> Config:
     if not isinstance(raw_config, dict):
         raise RuntimeError("Config file must contain a JSON object")
 
-    token = _required_str(raw_config, "discord_token")
+    token = _required_env("DISCORD_TOKEN")
     coal_emoji = _required_str(raw_config, "coal_emoji")
     threshold = _positive_int(raw_config.get("coal_threshold", 3), "coal_threshold")
 
@@ -44,10 +48,6 @@ def load_config(path: str | Path = "config.json") -> Config:
             "ignored_channel_ids",
         ),
         log_channel_id=_optional_id(raw_config.get("log_channel_id"), "log_channel_id"),
-        request_message_content_intent=_bool(
-            raw_config.get("request_message_content_intent", False),
-            "request_message_content_intent",
-        ),
     )
 
 
@@ -61,17 +61,18 @@ def _required_str(config: dict[str, Any], name: str) -> str:
     return value
 
 
+def _required_env(name: str) -> str:
+    value = os.getenv(name, "").strip()
+    if not value:
+        raise RuntimeError(f"{name} must be set in the environment or .env")
+    return value
+
+
 def _positive_int(value: Any, name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise RuntimeError(f"{name} must be an integer")
     if value < 1:
         raise RuntimeError(f"{name} must be at least 1")
-    return value
-
-
-def _bool(value: Any, name: str) -> bool:
-    if not isinstance(value, bool):
-        raise RuntimeError(f"{name} must be a boolean")
     return value
 
 

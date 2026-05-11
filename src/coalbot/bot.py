@@ -17,7 +17,7 @@ class CoalBot(discord.Client):
         intents = discord.Intents.default()
         intents.reactions = True
         intents.guilds = True
-        intents.message_content = config.request_message_content_intent
+        intents.message_content = True
 
         super().__init__(intents=intents)
         self.config = config
@@ -92,7 +92,6 @@ class CoalBot(discord.Client):
             channel_id=payload.channel_id,
             message_id=payload.message_id,
             content=deleted_content,
-            content_available=self.config.request_message_content_intent,
             attachment_urls=deleted_attachment_urls,
             coal_count=coal_count,
         )
@@ -112,7 +111,6 @@ class CoalBot(discord.Client):
         channel_id: int,
         message_id: int,
         content: str,
-        content_available: bool,
         attachment_urls: list[str],
         coal_count: int,
     ) -> None:
@@ -137,7 +135,7 @@ class CoalBot(discord.Client):
 
         embed = discord.Embed(
             title="Coal deletion",
-            description=_log_description(content, content_available),
+            description=_log_description(content),
             color=discord.Color.dark_grey(),
         )
         embed.add_field(name="Author", value=f"<@{author.id}> (`{author.id}`)", inline=False)
@@ -163,12 +161,10 @@ def _truncate(value: str, limit: int = 1000) -> str:
     return f"{value[: limit - 3]}..."
 
 
-def _log_description(content: str, content_available: bool) -> str:
+def _log_description(content: str) -> str:
     if content:
         return _truncate(content)
-    if content_available:
-        return "No text content."
-    return "Message content logging disabled."
+    return "No text content."
 
 
 def _configure_logging() -> None:
